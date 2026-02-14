@@ -4,7 +4,8 @@ namespace Subhashladumor1\LaravelAiVideo;
 
 use Illuminate\Support\Manager;
 use Subhashladumor1\LaravelAiVideo\Drivers\OpenAIDriver;
-use Subhashladumor1\LaravelAiVideo\Drivers\StabilityDriver;
+use Subhashladumor1\LaravelAiVideo\Drivers\LeonardoDriver;
+use Subhashladumor1\LaravelAiVideo\Drivers\GeminiDriver;
 use Subhashladumor1\LaravelAiVideo\Drivers\RunwayDriver;
 use Subhashladumor1\LaravelAiVideo\Drivers\ComposedDriver;
 use Subhashladumor1\LaravelAiVideo\Drivers\GuardAwareVideoDriver;
@@ -12,14 +13,13 @@ use Subhashladumor1\LaravelAiVideo\Contracts\VideoDriver;
 
 class VideoManager extends Manager
 {
+    // ... (getDefaultDriver and driver methods remain same, effectively handling wrapping) ...
+
     public function getDefaultDriver()
     {
         return $this->container->make('config')->get('ai-video.default_driver', 'openai');
     }
 
-    /**
-     * Override driver method to wrap in Guard if enabled.
-     */
     public function driver($driver = null)
     {
         $driverName = $driver ?: $this->getDefaultDriver();
@@ -27,20 +27,8 @@ class VideoManager extends Manager
 
         // Wrap in Guard Proxy if enabled
         if ($this->container->make('config')->get('ai-video.guard.enabled', true)) {
-            // Avoid double wrapping if cached by Manager.
-            // Manager caches by name. If we modify the instance here, implementation details matter.
-            // Laravel Manager returns the resolved instance.
-            // But we want to return a decorated instance.
-
-            // Note: Manager stores the instance in $this->drivers[$driverName].
-            // We should ideally wrap it in the creator methods, BUT we might want to toggle guard dynamically.
-
-            // Simplest way: Check if it's already wrapped or wrap inside the create methods.
-            // Use a specific method to wrap.
             if (!($instance instanceof GuardAwareVideoDriver)) {
                 $instance = new GuardAwareVideoDriver($instance, $driverName);
-                // Update cache if we want persistent wrapping
-                // $this->drivers[$driverName] = $instance; 
             }
         }
 
@@ -49,21 +37,23 @@ class VideoManager extends Manager
 
     protected function createOpenAIDriver(): VideoDriver
     {
-        // SDK Integration Logic
         $config = $this->container->make('config')->get('ai-video.drivers.openai');
-
-        // If API Key is missing, try to get from SDK config
         if (empty($config['api_key']) && $this->shouldUseSdk()) {
             $config['api_key'] = config('ai-sdk.drivers.openai.api_key');
         }
-
         return new OpenAIDriver($config['api_key']);
     }
 
-    protected function createStabilityDriver(): VideoDriver
+    protected function createLeonardoDriver(): VideoDriver
     {
-        $config = $this->container->make('config')->get('ai-video.drivers.stability');
-        return new StabilityDriver($config['api_key']);
+        $config = $this->container->make('config')->get('ai-video.drivers.leonardo');
+        return new LeonardoDriver($config['api_key']);
+    }
+
+    protected function createGeminiDriver(): VideoDriver
+    {
+        $config = $this->container->make('config')->get('ai-video.drivers.gemini');
+        return new GeminiDriver($config['api_key']);
     }
 
     protected function createRunwayDriver(): VideoDriver

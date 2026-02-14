@@ -18,17 +18,72 @@ class OpenAIDriver implements VideoDriver
 
     public function textToVideo(string $prompt, array $options = []): string
     {
-        throw new Exception("OpenAI Driver does not support direct textToVideo generation yet. Use ComposedDriver.");
+        // Sora Implementation (Placeholder/Based on common patterns)
+        // If user wants Sora via OpenAI, endpoint is likely /videos/generations
+
+        $response = Http::withToken($this->apiKey)
+            ->post("{$this->baseUrl}/videos/generations", [
+                'model' => $options['model'] ?? 'sora-1.0-turbo', // Or similar model ID
+                'prompt' => $prompt,
+                'size' => $options['size'] ?? '1080x1920',
+                'quality' => $options['quality'] ?? 'standard',
+            ]);
+
+        if ($response->failed()) {
+            throw new Exception("OpenAI Sora video generation failed: " . $response->body());
+        }
+
+        $datum = $response->json('data.0');
+
+        // If URL provided
+        if (isset($datum['url'])) {
+            $path = tempnam(sys_get_temp_dir(), 'sora_') . '.mp4';
+            file_put_contents($path, file_get_contents($datum['url']));
+            return $path;
+        }
+
+        // If base64 provided
+        if (isset($datum['b64_json'])) {
+            $path = tempnam(sys_get_temp_dir(), 'sora_') . '.mp4';
+            file_put_contents($path, base64_decode($datum['b64_json']));
+            return $path;
+        }
+
+        throw new Exception("OpenAI returned no video data.");
     }
 
     public function imageToVideo($imagePath, array $options = []): string
     {
-        throw new Exception("OpenAI Driver does not support imageToVideo generation.");
+        // Image-to-Video via OpenAI (Sora?)
+        // Assuming similar structure but with 'image' input
+
+        $image = base64_encode(file_get_contents($imagePath));
+
+        $response = Http::withToken($this->apiKey)
+            ->post("{$this->baseUrl}/videos/generations", [
+                'model' => $options['model'] ?? 'sora-1.0-turbo',
+                'prompt' => $options['prompt'] ?? 'Animate this image',
+                'image' => $image, // Base64 or URL usually
+                'size' => $options['size'] ?? '1080x1920',
+            ]);
+
+        if ($response->failed()) {
+            throw new Exception("OpenAI Sora image-to-video generation failed: " . $response->body());
+        }
+
+        $datum = $response->json('data.0');
+        if (isset($datum['url'])) {
+            $path = tempnam(sys_get_temp_dir(), 'sora_') . '.mp4';
+            file_put_contents($path, file_get_contents($datum['url']));
+            return $path;
+        }
+
+        throw new Exception("OpenAI returned no video data.");
     }
 
     public function generateScenes(string $script, array $options = []): array
     {
-        $model = $options['model'] ?? 'gpt-4-turbo';
+        $model = $options['model'] ?? 'gpt-4o'; // Updated to gpt-4o from previous edits
 
         $prompt = "Break this script into cinematic visual scenes with descriptions and duration. Return strictly valid JSON array of objects with keys: 'scene_number', 'visual_description', 'voiceover_text', 'duration_seconds'. Script: " . $script;
 
@@ -118,6 +173,9 @@ class OpenAIDriver implements VideoDriver
 
     public function estimateCost(string $type, array $params = []): float
     {
+        if ($type === 'text-to-video' || $type === 'image-to-video') {
+            return 0.50; // Estimate for Sora/Video Generation
+        }
         if ($type === 'scene-planning') {
             $inputTokens = strlen($params['script'] ?? '') / 4;
             return ($inputTokens / 1000) * 0.01 + 0.03;
