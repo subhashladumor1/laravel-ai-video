@@ -1,0 +1,65 @@
+{
+    "name": "subhashladumor1/laravel-ai-video",
+    "description": "Laravel AI Video is a high-performance, multi-model AI video generator for Laravel AI SDK. Create text-to-video, image-to-video, marketing videos, social media reels, and multi-aspect ratio content using modern AI models like Runway, Stability, Pika, and OpenAI.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "ai",
+        "video",
+        "openai",
+        "stability",
+        "runway",
+        "pika",
+        "text-to-video",
+        "image-to-video"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Subhashladumor1\\LaravelAiVideo\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Subhashladumor1\\LaravelAiVideo\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Subhash Ladumor",
+            "email": "subhashladumor1@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/contracts": "^10.0|^11.0",
+        "illuminate/support": "^10.0|^11.0",
+        "illuminate/queue": "^10.0|^11.0",
+        "guzzlehttp/guzzle": "^7.8",
+        "php-ffmpeg/php-ffmpeg": "^1.1"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0",
+        "phpunit/phpunit": "^10.5",
+        "mockery/mockery": "^1.0"
+    },
+    "suggest": {
+        "subhashladumor1/laravel-ai-guard": "Provides AI budget control, cost limits, and pre-request estimation.",
+        "subhashladumor1/laravel-ai-sdk": "Use shared API clients and configuration from Laravel AI SDK."
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Subhashladumor1\\LaravelAiVideo\\LaravelAiVideoServiceProvider"
+            ],
+            "aliases": {
+                "AiVideo": "Subhashladumor1\\LaravelAiVideo\\Facades\\AiVideo"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
