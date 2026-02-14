@@ -9,7 +9,7 @@ use Exception;
 class RunwayDriver implements VideoDriver
 {
     protected string $apiKey;
-    protected string $baseUrl = 'https://api.runwayml.com/v1';
+    protected string $baseUrl = 'https://api.dev.runwayml.com/v1';
 
     public function __construct(string $apiKey)
     {
@@ -18,12 +18,13 @@ class RunwayDriver implements VideoDriver
 
     public function textToVideo(string $prompt, array $options = []): string
     {
-        // Typically Gen-2 endpoint
         $response = Http::withToken($this->apiKey)
-            ->post("{$this->baseUrl}/tasks", [
-                'type' => 'gen2',
-                'prompts' => [['text' => $prompt]],
-                'seconds' => $options['duration'] ?? 4,
+            ->withHeaders(['X-Runway-Version' => '2024-09-13'])
+            ->post("{$this->baseUrl}/text_to_video", [
+                'promptText' => $prompt,
+                'model' => $options['model'] ?? 'gen4_turbo',
+                'duration' => $options['duration'] ?? 10,
+                'ratio' => $options['ratio'] ?? '1280:720',
             ]);
 
         if ($response->failed()) {
@@ -36,17 +37,24 @@ class RunwayDriver implements VideoDriver
 
     public function imageToVideo($imagePath, array $options = []): string
     {
-        // Assuming image upload first or direct base64/url
-        // Simplification: assume URL if string starts with http, else upload?
-        // Runway API usually takes URLs.
-        // For local file, might need upload first mechanism or just assume accessible URL for MVP.
-        $imageUrl = $imagePath;
+        // Convert local file to Data URI if it exists
+        if (file_exists($imagePath)) {
+            $data = file_get_contents($imagePath);
+            $mime = mime_content_type($imagePath);
+            $base64 = base64_encode($data);
+            $imageUrl = "data:{$mime};base64,{$base64}";
+        } else {
+            $imageUrl = $imagePath; // Assume URL
+        }
 
         $response = Http::withToken($this->apiKey)
-            ->post("{$this->baseUrl}/tasks", [
-                'type' => 'gen2',
-                'prompts' => [['image' => $imageUrl]], // Simplified
-                'seconds' => $options['duration'] ?? 4,
+            ->withHeaders(['X-Runway-Version' => '2024-09-13'])
+            ->post("{$this->baseUrl}/image_to_video", [
+                'promptImage' => $imageUrl,
+                'promptText' => $options['prompt'] ?? 'Cinematic slow motion', // Required by Gen-3 Alpha
+                'model' => $options['model'] ?? 'gen4_turbo', // Updated default to Gen-4 Turbo
+                'duration' => $options['duration'] ?? 10,
+                'ratio' => $options['ratio'] ?? '1280:768',
             ]);
 
         if ($response->failed()) {
@@ -64,6 +72,7 @@ class RunwayDriver implements VideoDriver
         for ($i = 0; $i < $maxRetries; $i++) {
             sleep(2);
             $check = Http::withToken($this->apiKey)
+                ->withHeaders(['X-Runway-Version' => '2024-09-13'])
                 ->get("{$this->baseUrl}/tasks/{$taskId}");
 
             $status = $check->json('status');

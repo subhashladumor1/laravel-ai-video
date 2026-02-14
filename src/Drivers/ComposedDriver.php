@@ -46,8 +46,10 @@ class ComposedDriver implements VideoDriver
         Log::info("ComposedDriver: Starting Text-to-Video generation.", ['prompt' => $prompt]);
 
         // 1. Plan Scenes (Using OpenAI)
-        $planner = new ScenePlanner($this->openaiDriver);
-        $scenes = $planner->plan($prompt);
+        // $planner = new ScenePlanner($this->openaiDriver);
+        // $scenes = $planner->plan($prompt); 
+        // Calling driver directly to ensure options are passed
+        $scenes = $this->openaiDriver->generateScenes($prompt, ['model' => 'gpt-4o']);
 
         $processedScenes = [];
         $tempDir = Config::get('ai-video.temp_path', sys_get_temp_dir() . '/ai-video') . '/' . uniqid();

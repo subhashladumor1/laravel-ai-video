@@ -15,10 +15,10 @@ Whether you need to automate **Social Media Reels**, create **Product Ads**, or 
 *   **🎬 Multi-Model Orchestration ("Composed" Driver)**:
     *   **Scripting**: OpenAI GPT-4o breaks prompts into cinematic scenes.
     *   **Visuals**: OpenAI DALL-E 3 generates high-consistency scene images.
-    *   **Motion**: Stability AI (SVD) or Runway brings images to life.
+    *   **Motion**: Runway Gen-4 Turbo / Leonardo Kling 2.1 brings images to life.
     *   **Voice**: OpenAI TTS-1 adds synchronized voiceovers.
     *   **Rendering**: FFmpeg merges everything with transitions and subtitles.
-*   **🖼️ Image-to-Video**: Direct support for animating static images (e.g., product photos).
+*   **🖼️ Image-to-Video**: Support for animating images using **Runway (Gen-4)**, **Leonardo (Kling 2.1)**, or **OpenAI (Sora)**.
 *   **📱 Smart Templates**: Built-in aspect ratios for **Instagram/TikTok (9:16)**, **YouTube (16:9)**, and **Feeds (1:1)**.
 *   **🛡️ AI Guard Integration**: Prevents API bill shock by estimating costs *before* execution and strictly enforcing budgets.
 *   **⚡ High-Performance Architecture**:
@@ -34,12 +34,12 @@ The **Composed Driver** automates the entire video production lifecycle:
 
 ```mermaid
 graph TD
-    User[User Prompt] -->|1. Plan| Planner(Scene Planner / GPT-4)
+    User[User Prompt] -->|1. Plan| Planner(Scene Planner / GPT-4o / Gemini 1.5)
     Planner -->|JSON Scenes| Manager{Video Manager}
     
     subgraph "Parallel Processing Per Scene"
         Manager -->|Describe| GenImg[Image Gen / DALL-E 3]
-        GenImg -->|Image| Animate[Motion / Stability SVD]
+        GenImg -->|Image| Animate[Motion / Runway / Kling / Sora]
         Manager -->|Text| TTS[Voice / OpenAI TTS]
     end
     
@@ -75,8 +75,9 @@ graph TD
     Add your API keys. The package works best with multiple providers enabled.
     ```env
     OPENAI_API_KEY=sk-...
-    STABILITY_API_KEY=sk-...
-    RUNWAY_API_KEY=...       # Optional
+    RUNWAY_API_KEY=...
+    LEONARDO_API_KEY=...
+    GEMINI_API_KEY=...
     
     # Enable the Budget Guard
     AI_VIDEO_GUARD_ENABLED=true
@@ -84,7 +85,7 @@ graph TD
 
 ---
 
-## � Complete Usage Guide
+## 📖 Complete Usage Guide
 
 ### 1. Text-to-Video (The "Composed" Pipeline)
 This is the most powerful feature. It creates a full video from a simple text prompt.
@@ -124,16 +125,27 @@ ProcessVideoJob::dispatch(
 ```
 
 ### 2. Image-to-Video (Motion Generation)
-Ideal for bringing product photography or static assets to life.
+Ideal for bringing product photography or static assets to life. Supports **Runway**, **Leonardo**, and **Sora**.
 
 ```php
 use Subhashladumor1\LaravelAiVideo\Facades\AiVideo;
 
-$videoPath = AiVideo::driver('stability')->imageToVideo(
+// Using Runway Gen-4 Turbo
+$videoPath = AiVideo::driver('runway')->imageToVideo(
     public_path('images/product-shoe.jpg'),
     [
-        'motion_bucket_id' => 127, // 1-255: Controls amount of motion
-        'duration' => 5 // Duration of the clip
+        'prompt' => 'Cinematic slow motion, floating in air', // Text prompt required for control
+        'duration' => 10,
+        'model' => 'gen4_turbo'
+    ]
+);
+
+// Using Leonardo (Kling 2.1)
+$videoPath2 = AiVideo::driver('leonardo')->imageToVideo(
+    public_path('images/portrait.jpg'),
+    [
+        'prompt' => 'Character smiles and waves',
+        'model' => 'KLING2_1'
     ]
 );
 ```

@@ -9,19 +9,23 @@ return [
     'drivers' => [
         'openai' => [
             'api_key' => env('OPENAI_API_KEY'),
-            'model' => 'gpt-4o', // Updated to latest flagship model
+            'model' => 'gpt-4o',
+            'video_model' => 'sora-1.0-turbo', // New: Sora Support
             'voice_model' => 'tts-1',
             'image_model' => 'dall-e-3',
             'image_size' => '1024x1024',
         ],
-        'stability' => [
-            'api_key' => env('STABILITY_API_KEY'),
-            'image_model' => 'ultra', // Stable Diffusion Ultra if available or distinct from video
-            'video_model' => 'stable-video-diffusion-img2vid-xt', // XT for longer/better clips
+        'leonardo' => [ // Replaces Stability for Kling 2.1 Pro
+            'api_key' => env('LEONARDO_API_KEY'),
+            'model' => 'KLING2_1',
+        ],
+        'gemini' => [
+            'api_key' => env('GEMINI_API_KEY'),
+            'model' => 'gemini-1.5-pro',
         ],
         'runway' => [
             'api_key' => env('RUNWAY_API_KEY'),
-            'model' => 'gen-3-alpha', // Latest Gen-3 Alpha if accessible via API (or fallback to gen-2)
+            'model' => 'gen4_turbo', // Updated to Gen-4 Turbo
         ],
         'pika' => [
             'api_key' => env('PIKA_API_KEY'),
