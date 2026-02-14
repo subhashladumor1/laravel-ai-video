@@ -2,7 +2,7 @@
   "name": "subhashladumor1/laravel-ai-video",
   "description": "Laravel AI Video is a high-performance, multi-model AI video generator for Laravel AI SDK. Create text-to-video, image-to-video, marketing videos, social media reels, and multi-aspect ratio content using modern AI models like Runway, Stability, Pika, and OpenAI.",
   "type": "library",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "keywords": [
     "laravel",
